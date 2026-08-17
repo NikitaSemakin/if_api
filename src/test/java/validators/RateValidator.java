@@ -1,43 +1,32 @@
 package validators;
 
-import static io.restassured.RestAssured.given;
+import io.restassured.response.Response;
+
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasKey;
 
 public class RateValidator {
-    public void validateSchema(int statusCode) {
-        given()
-                .log().all()
-                .when()
-                .get("https://kurs.onliner.by/sdapi/kurs/api/bestrate?currency=USD&type=nbrb")
-                .then().log().all()
-                .body(matchesJsonSchemaInClasspath("schemas/rate_schema.json"))
-                .statusCode(statusCode);
+
+    public void validateStatusCode(Response response, int expectedStatusCode) {
+        response.then()
+                .statusCode(expectedStatusCode);
     }
 
-    public void validateHeaders () {
-        given()
-                .log().all()
-                .when()
-                .get("https://kurs.onliner.by/sdapi/kurs/api/bestrate?currency=USD&type=nbrb")
-                .then().log().all()
-                .statusCode(200)
+    public void validateSchema(Response response) {
+        response.then()
+                .body(matchesJsonSchemaInClasspath("schemas/rate_schema.json"));
+    }
+
+    public void validateHeaders(Response response) {
+        response.then()
                 .header("Content-Type", containsString("application/json"));
-
     }
 
-    public void validateKeys() {
-        given()
-                .log().all()
-                .when()
-                .get("https://kurs.onliner.by/sdapi/kurs/api/bestrate?currency=USD&type=nbrb")
-                .then().log().all()
-                .statusCode(200)
+    public void validateKeys(Response response) {
+        response.then()
                 .body("$", hasKey("amount"))
                 .body("$", hasKey("grow"))
                 .body("$", hasKey("scale"));
-
     }
-
 }
